@@ -1,0 +1,9 @@
+.vscode/
+.vs/
+.idea/
+bin/
+build/
+out/
+CMakeSettings.json
+*.bak
+*.tmp
