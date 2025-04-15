@@ -1,4 +1,8 @@
-# valid components: main font ttf color image audio acodec video primitives memfile physfs dialog
+#[[
+will always look all the addons
+missing an addon will be fatal if its specified as a required component
+valid components are: main font ttf color image audio acodec video primitives memfile physfs dialog
+]]
 
 include (util)
 
@@ -23,18 +27,18 @@ if (Allegro_INCLUDE_DIR)
         return ()
     endif ()
 
-    set (allegro_lib_suffix "")
-    if (USE_STATIC_LIBS)
-        set (allegro_lib_suffix "-static")
-        message (STATUS "Looking for Allegro's static libraries...")
-    else ()
+    if (USE_SHARED_ALLEGRO)
         message (STATUS "Looking for Allegro's shared libraries...")
+        set (type SHARED)
+        set (suffix "")
+    else ()
+        message (STATUS "Looking for Allegro's static libraries...")
+        set (suffix "-static")
+        set (type STATIC)
     endif ()
-    mark_as_advanced (allegro_lib_suffix)
 
     if (NOT TARGET allegro::allegro)
-        find_library (allegro_lib allegro${allegro_lib_suffix})
-        mark_as_advanced (allegro_lib)
+        find_library (allegro_lib allegro${suffix})
         if (NOT allegro_lib)
             if (Allegro_FIND_REQUIRED) 
                 message (FATAL_ERROR "Missing Allegro core library.")
@@ -45,8 +49,8 @@ if (Allegro_INCLUDE_DIR)
             return ()
         endif ()
         get_filename_component(Allegro_LIBRARY_DIR "${allegro_lib}" DIRECTORY)
-        set (Allegro_LIBRARIES ${allegro_lib})
-        add_library (allegro::allegro UNKNOWN IMPORTED)
+        list (APPEND Allegro_LIBRARIES ${allegro_lib})
+        add_library (allegro::allegro ${type} IMPORTED GLOBAL)
         set_target_properties (
             allegro::allegro PROPERTIES
             IMPORTED_LOCATION ${allegro_lib}
@@ -54,13 +58,12 @@ if (Allegro_INCLUDE_DIR)
         )
     endif ()
 
-    foreach (addon ${Allegro_FIND_COMPONENTS})
+    foreach (addon main font ttf color image audio acodec video primitives memfile physfs dialog)
         if (TARGET allegro::${addon})
             continue ()
         endif ()
 
-        find_library (allegro_lib_${addon} allegro_${addon}${allegro_lib_suffix})
-        mark_as_advanced (allegro_lib_${addon})
+        find_library (allegro_lib_${addon} allegro_${addon}${suffix})
         if (NOT allegro_lib_${addon})
             if (Allegro_FIND_REQUIRED_${addon}) 
                 message (FATAL_ERROR "Missing Allegro ${addon} addon.")
@@ -71,7 +74,7 @@ if (Allegro_INCLUDE_DIR)
         endif ()
         list (APPEND Allegro_LIBRARIES ${allegro_lib_${addon}})
 
-        add_library (allegro::${addon} UNKNOWN IMPORTED)
+        add_library (allegro::${addon} ${type} IMPORTED GLOBAL)
         set_target_properties (
             allegro::${addon} PROPERTIES
             IMPORTED_LOCATION ${allegro_lib_${addon}}
@@ -80,11 +83,18 @@ if (Allegro_INCLUDE_DIR)
     endforeach ()
 
     if (NOT TARGET allegro::full)
-        add_library (allegro::full INTERFACE IMPORTED) # GLOBAL?
+        add_library (allegro::full INTERFACE IMPORTED GLOBAL)
         target_link_libraries (allegro::full INTERFACE allegro::allegro)
         foreach (addon main font ttf color image audio acodec video primitives memfile physfs dialog)
             target_link_libraries (allegro::full INTERFACE allegro::${addon})
         endforeach ()
     endif ()
 
+    # not needed for variables
+    mark_as_advanced (header)
+    mark_as_advanced (allegro_lib)
+    foreach (addon main font ttf color image audio acodec video primitives memfile physfs dialog)
+        mark_as_advanced (allegro_lib_${addon})
+    endforeach ()
+    mark_as_advanced (suffix)
 endif ()
