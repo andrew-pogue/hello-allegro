@@ -1,10 +1,11 @@
-message (STATUS "Building Allegro...") 
+set (Allegro_VERSION 5.2.10.1)
+message (STATUS "Configuring Allegro (${Allegro_VERSION})...")
 
 include(ExternalProject)
 ExternalProject_Add(
     Allegro
     GIT_REPOSITORY      https://github.com/liballeg/Allegro5.git
-    GIT_TAG             5.2.10.1
+    GIT_TAG             ${Allegro_VERSION}
     PREFIX              ${CMAKE_BINARY_DIR}/_deps/allegro
     CMAKE_ARGS          
         -DSHARED=${USE_SHARED_ALLEGRO}
@@ -32,8 +33,7 @@ ExternalProject_Add(
     UPDATE_DISCONNECTED TRUE
     INSTALL_DIR         ${CMAKE_BINARY_DIR}/_install/allegro
 )
-
-ExternalProject_Get_Property(Allegro INSTALL_DIR)
+ExternalProject_Get_Property (Allegro INSTALL_DIR)
 
 if (USE_SHARED_ALLEGRO)
     set (type SHARED)
@@ -57,7 +57,6 @@ add_library (allegro::full INTERFACE IMPORTED GLOBAL)
 target_link_libraries (allegro::full INTERFACE allegro::allegro)
 
 foreach (addon main font ttf color image audio acodec video primitives memfile physfs dialog)
-    message ("${INSTALL_DIR}/lib/${prefix}allegro_${addon}${suffix}")
     add_library (allegro::${addon} ${type} IMPORTED GLOBAL)
     add_dependencies (allegro::${addon} Allegro)
     set_target_properties (

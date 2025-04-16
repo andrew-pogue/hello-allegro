@@ -90,7 +90,6 @@ if (Allegro_INCLUDE_DIR)
         endforeach ()
     endif ()
 
-    # not needed for variables
     mark_as_advanced (header)
     mark_as_advanced (allegro_lib)
     foreach (addon main font ttf color image audio acodec video primitives memfile physfs dialog)
